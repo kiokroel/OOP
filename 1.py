@@ -1,7 +1,7 @@
 import datetime as dt
 from pprint import pprint
 import os
-
+import copy
 
 
 class Cinema:
@@ -53,9 +53,9 @@ class Cinema:
 
         if name_movie in self.schedule.keys():
             for session in self.schedule[name_movie]:
-                if session["room"] == number_room and (
-                        (time < session["session_end"] and time > session["session_start"]) or 
-                        (session_end < session["session_end"] and session_end > session["session_start"])):
+                if self.schedule[name_movie][session]["room"] == number_room and \
+                        ((time < self.schedule[name_movie][session]["session_end"] and time > self.schedule[name_movie][session]["session_start"]) or
+                        (session_end < self.schedule[name_movie][session]["session_end"] and session_end > self.schedule[name_movie][session]["session_start"])):
                     print("На это время сеанс уже есть")
                     return
 
@@ -64,25 +64,25 @@ class Cinema:
             "room": number_room,
             "session_start": time,
             "session_end": session_end,
-            "seats": self.rooms[number_room].seats.copy(),
+            "seats":  copy.deepcopy(self.rooms[number_room].seats),
             "price": price
             }
-
         if name_movie in self.schedule.keys():
-            self.schedule[name_movie].append(session)
+            self.schedule[name_movie][time] = session
         else:
-            self.schedule[name_movie] = [session]
+            self.schedule[name_movie] = dict()
+            self.schedule[name_movie][time] = dict()
+            self.schedule[name_movie][time] = session
 
     def buy_ticket(self, name_movie, date, place):
         place = list(map(int, place.split(' ')))
-        for i in range(len(self.schedule[name_movie])):
-            if self.schedule[name_movie][i]["session_start"] == date:
-                self.schedule[name_movie][i]["seats"][place[0]-1][place[1]-1] = '1'
+        self.schedule[name_movie][date]["seats"][place[0]-1][place[1]-1] = '1'
 
 
 a = Cinema("йцуйцуйц")
 a.add_movie("qwe qwewqe", dt.timedelta(hours=1, minutes=51, seconds=23))
 a.add_movie("qwe qwewqe", dt.timedelta(hours=3, minutes=51, seconds=23))
+a.add_movie("zxczxczcx", dt.timedelta(hours=3, minutes=51, seconds=23))
 a.add_room(0, "10 5")
 a.add_room(0, "0 0")
 a.add_session("qwe qwewqe", 0, dt.datetime(2023, 4, 11, 17, 36, 56), 150)
@@ -90,12 +90,12 @@ a.add_session("qwe qwewqe", 0, dt.datetime(2023, 4, 11, 16, 36, 56), 150)
 a.add_session("qwe qwewqe", 0, dt.datetime(2023, 4, 14, 16, 36, 56), 150)
 a.buy_ticket("qwe qwewqe", dt.datetime(2023, 4, 11, 17, 36, 56), '3 2')
 
-'''pprint(a.name)
-print(a.movies)
-print(a.movies['qwe qwewqe'].duration)'''
+#pprint(a.name)
+#pprint(a.movies)
+#print(a.movies['qwe qwewqe'].duration)
 #print(a.rooms[0].seats)
 #pprint(a.schedule)
-#pprint(a.schedule["qwe qwewqe"][1]["seats"])
+#pprint(a.schedule["qwe qwewqe"][dt.datetime(2023, 4, 11, 17, 36, 56)]["seats"])
 
 '''while(True):
     os.system('cls')
