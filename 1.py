@@ -1,104 +1,125 @@
 import datetime as dt
 from pprint import pprint
-import os
+from collections import defaultdict
 import copy
 
 
 class Cinema:
-    def __init__(self, name_cinema):
-        self.name = name_cinema
-        self.rooms = dict()
-        self.movies = dict()
-        self.schedule = dict()
+    def __init__(self, name):
+        self.name = name
+        self.halls = dict()
 
-    class Room:
-        def __init__(self, number, seats):
-            self.number = int(number)
-            seats = list(map(int, seats.split(' ')))
-            self.seats = [''] * seats[0]
 
-            for i in range(len(self.seats)):
-                self.seats[i] = ['0'] * seats[1]
+class Movie:
+    def __init__(self, name, duration):
+        self.name = name
+        self.duration = duration
 
-    class Movie:
-        def __init__(self, duration, genre=None):
-            if genre is None:
-                genre = set()
-            self.duration = duration
-            self.genre = genre
 
-    def add_room(self, number, seats):
-        number = int(number)
+class User:
+    def __init__(self, name):
+        self.name = name
+        self.balance = 0
+        self.tickets = list()
 
-        if number in self.rooms.keys():
-            print("Зал под таким номером уже существует")
-            return
-
-        self.rooms[number] = self.Room(number, seats)
-
-    def add_movie(self, name_movie, duration, genre=None):
-        if name_movie in self.movies.keys():
-            print("Фильм с таким названием уже есть")
-            return
-
-        self.movies[name_movie] = self.Movie(duration, genre)
-
-    def add_session(self, name_movie, number_room, time, price):
-        if name_movie not in self.movies.keys():
-            print("Фильма с таким названием нет в списке")
-            return
-
-        session_end = time + self.movies[name_movie].duration
-        number_room = int(number_room)
-
-        if name_movie in self.schedule.keys():
-            for session in self.schedule[name_movie]:
-                if self.schedule[name_movie][session]["room"] == number_room and \
-                        ((time < self.schedule[name_movie][session]["session_end"] and time > self.schedule[name_movie][session]["session_start"]) or
-                        (session_end < self.schedule[name_movie][session]["session_end"] and session_end > self.schedule[name_movie][session]["session_start"])):
-                    print("На это время сеанс уже есть")
+    def buy_ticket(self, cinema_name, movie_name, date, hall, seats):
+        seats = list(map(int, seats.split()))
+        for i in range(len(schedule[cinema_name])):
+            if schedule[cinema_name][i].movie == movie_name and schedule[cinema_name][i].start == date and schedule[cinema_name][i].hall == hall:
+                if schedule[cinema_name][i].seats[seats[0]-1][seats[1]-1] == True:
+                    schedule[cinema_name][i].seats[seats[0] - 1][seats[1] - 1] = False
+                    self.tickets.append(schedule[cinema_name][i])
                     return
-
-        number_room = int(number_room)
-        session = {
-            "room": number_room,
-            "session_start": time,
-            "session_end": session_end,
-            "seats":  copy.deepcopy(self.rooms[number_room].seats),
-            "price": price
-            }
-        if name_movie in self.schedule.keys():
-            self.schedule[name_movie][time] = session
-        else:
-            self.schedule[name_movie] = dict()
-            self.schedule[name_movie][time] = dict()
-            self.schedule[name_movie][time] = session
-
-    def buy_ticket(self, name_movie, date, place):
-        place = list(map(int, place.split(' ')))
-        self.schedule[name_movie][date]["seats"][place[0]-1][place[1]-1] = '1'
+                else:
+                    print(f'{seats[1]} место в {seats[0]} ряду уже занято')
+                    return
+        print("Такого сеанса не существует")
+        return
 
 
-a = Cinema("йцуйцуйц")
-a.add_movie("qwe qwewqe", dt.timedelta(hours=1, minutes=51, seconds=23))
-a.add_movie("qwe qwewqe", dt.timedelta(hours=3, minutes=51, seconds=23))
-a.add_movie("zxczxczcx", dt.timedelta(hours=3, minutes=51, seconds=23))
-a.add_room(0, "10 5")
-a.add_room(0, "0 0")
-a.add_session("qwe qwewqe", 0, dt.datetime(2023, 4, 11, 17, 36, 56), 150)
-a.add_session("qwe qwewqe", 0, dt.datetime(2023, 4, 11, 16, 36, 56), 150)
-a.add_session("qwe qwewqe", 0, dt.datetime(2023, 4, 14, 16, 36, 56), 150)
-a.buy_ticket("qwe qwewqe", dt.datetime(2023, 4, 11, 17, 36, 56), '3 2')
+class Admin:
+    def __init__(self, name):
+        self.name = name
 
-#pprint(a.name)
-#pprint(a.movies)
-#print(a.movies['qwe qwewqe'].duration)
-#print(a.rooms[0].seats)
-#pprint(a.schedule)
-#pprint(a.schedule["qwe qwewqe"][dt.datetime(2023, 4, 11, 17, 36, 56)]["seats"])
+    def add_cinema(self, cinema_add):
+        if cinema_add.name in cinema.keys():
+            print(f'Кинотеатр {cinema_add.name} уже есть в списке')
+            return
+        cinema[cinema_add.name] = cinema_add
 
-'''while(True):
-    os.system('cls')
-    print('wqeqweqwe')
-    input()'''
+    def add_session(self, session):
+        for s in schedule[session.cinema]:
+            if s.hall == session.hall and (
+                    session.start <= s.end and session.start <= s.start or session.end <= s.end and session.start >= s.start):
+                print("Это время уже занято")
+                return
+        schedule[session.cinema].append(session)
+
+    def add_movie(self, movie):
+        if movie.name in movies.keys():
+            print(f'Фильм {movie.name} уже есть в списке')
+            return
+        movies[movie.name] = movie
+
+    def add_hall(self, cinema_name, number, hall):
+        if number in cinema[cinema_name].halls.keys():
+            print(f"Зал под номером {number} в кинотеатре {cinema_name} уже существует")
+            return
+        cinema[cinema_name].halls[number] = hall
+
+
+class Hall:
+    def __init__(self, seats):
+        seats = list(map(int, seats.split(' ')))
+        self.seats = [''] * seats[0]
+        for i in range(len(self.seats)):
+            self.seats[i] = [True] * seats[1]
+
+
+class Session:
+    def __init__(self, cinema_name, movie_name, hall, cost, date):
+        self.cinema = cinema_name
+        self.movie = movie_name
+        self.hall = hall
+        self.cost = cost
+        self.start = date
+        self.end = date + movies[movie_name].duration
+        self.seats = copy.deepcopy(cinema[cinema_name].halls[hall].seats)
+
+
+cinema = {
+    "Кристалл": Cinema("Кристалл"),
+    'Маяковский': Cinema('Маяковский')
+}
+
+movies = {
+    'Джон Уик 4': Movie('Джон Уик 4', dt.timedelta(hours=2, minutes=49)),
+    'Чебурашка': Movie('Чебурашка', dt.timedelta(hours=2, minutes=7))
+}
+
+schedule = defaultdict(list)
+
+
+a = Admin('admin')
+a.add_hall('Кристалл', 0, Hall('3 4'))
+#a.add_hall('Кристалл', 0, Hall('3 4'))
+#pprint(cinema['Кристалл'].halls[0].seats)
+
+a.add_movie(Movie('Шазам! Ярость Богов', dt.timedelta(hours=2, minutes=10)))
+#pprint(movies)
+
+a.add_session(Session('Кристалл', 'Шазам! Ярость Богов', 0, 150, dt.datetime(2023, 4, 11, 17, 36, 56), ))
+#a.add_session(Session('Кристалл', 'Шазам! Ярость Богов', 0, 150, dt.datetime(2023, 4, 11, 17, 36, 56), ))
+#pprint(schedule['Кристалл'])
+
+a.add_cinema(Cinema("Первомайский"))
+#pprint(cinema)
+
+#pprint(schedule['Кристалл'][0].seats)
+u = User(User)
+u.buy_ticket('Кристалл', 'Шазам! Ярость Богов', dt.datetime(2023, 4, 11, 17, 36, 56),0, '2 2' )
+#u.buy_ticket('Кристалл', 'Шазам! Ярость Богов', dt.datetime(2023, 4, 11, 17, 36, 56),0, '2 2' )
+#u.buy_ticket('Крисwталл', 'Шазам! Яроwсть Богов', dt.datetime(2023, 4, 11, 17, 36, 56),0, '2 2' )
+#pprint(schedule['Кристалл'][0].seats)
+#pprint(u.tickets[0].movie)
 
